@@ -12,16 +12,23 @@ mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 })
   .catch((err) => {
     console.log('Не удалось подключиться к базе данных. Ошибка: ', err);
   });
-
-app.use('/users', require('./routes/users'));
-
 app.use((req, res, next) => {
   req.user = {
-    _id: '5d8b8592978f8bd833ca8133', // вставьте сюда _id созданного в предыдущем пункте пользователя
+    _id: '6299f24405d0fd675eeba048', // hardcoded userId
   };
 
   next();
 });
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
+
+// app.use((req, res, next) => {
+//   req.user = {
+//     _id: '5d8b8592978f8bd833ca8133',
+//   };
+//
+//   next();
+// });
 
 // app.get('/', (req, res) => res.send('Hello World!'));
 app.listen(PORT);

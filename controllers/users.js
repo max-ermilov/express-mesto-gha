@@ -38,3 +38,11 @@ module.exports.createUser = (req, res) => {
       res.status(500).send({ message: err.message });
     });
 };
+
+// module.exports.updateUser = (req, res) => {
+//  //
+// };
+//
+// module.exports.updateUserAvatar = (req, res) => {
+//  //
+// };

@@ -13,36 +13,63 @@ module.exports.getUserById = (req, res) => {
   User.findById(userID)
     .then((user) => {
       if (!user) {
-        // return res.status(404).send({ message: 'Пользователь не найден' });
-        res.status(404).send({ message: 'Пользователь не найден' });
-        return;
+        return res.status(404).send({ message: 'Пользователь не найден' });
       }
-      res.status(200).send({ user });
+      return res.status(200).send({ user });
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res.status(400).send({ message: 'Некорректный формат id' });
+      }
+      return res.status(500).send({ message: `Ошибка сервера: ${err.mesage}` });
+    });
 };
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
   if (!name || !about || !avatar) {
-    res.status(400).send({
+    return res.status(400).send({
       message: 'Отсутствуют или неверно переданы одно или несколько полей: name, about, avatar',
     });
-    return;
   }
 
-  User.create({ name, about, avatar })
+  return User.create({ name, about, avatar })
+    .then((user) => res.status(200).send({ data: user }))
+    .catch((err) => res.status(500).send({ message: err.message }));
+};
+
+module.exports.updateUser = (req, res) => {
+  const { name, about } = req.body;
+
+  if (!name || !about) {
+    return res.status(400).send({ message: 'Отсутствуют или неверно переданы одно или несколько полей: name, about' });
+  }
+
+  return User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
-      res.status(500).send({ message: err.message });
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Отсутствуют или неверно переданы одно или несколько полей: name, about' });
+      }
+      return res.status(500).send({ message: err.message, name: err.name });
     });
 };
 
-// module.exports.updateUser = (req, res) => {
-//  //
-// };
-//
-// module.exports.updateUserAvatar = (req, res) => {
-//  //
-// };
+module.exports.updateUserAvatar = (req, res) => {
+  const { avatar } = req.body;
+
+  if (!avatar) {
+    return res.status(400).send({ message: 'Отсутствует или неверно передано поле: avatar' });
+  }
+
+  return User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .then((user) => res.status(200).send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Отсутствует или неверно передано поле: avatar' });
+        return;
+      }
+      res.status(500).send({ message: err.message });
+    });
+};

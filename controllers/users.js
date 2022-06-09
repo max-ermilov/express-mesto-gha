@@ -30,27 +30,32 @@ module.exports.createUser = (req, res) => {
 
   if (!name || !about || !avatar) {
     return res.status(400).send({
-      message: 'Отсутствуют или неверно переданы одно или несколько полей: name, about, avatar',
+      message: 'Отсутствуют одно или несколько полей: name, about, avatar',
     });
   }
 
   return User.create({ name, about, avatar })
-    .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((user) => res.status(201).send({ data: user }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: 'Неверно переданы одно или несколько полей: name, about, avatar' });
+      }
+      return res.status(500).send({ message: err.message });
+    });
 };
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
 
   if (!name || !about) {
-    return res.status(400).send({ message: 'Отсутствуют или неверно переданы одно или несколько полей: name, about' });
+    return res.status(400).send({ message: 'Отсутствуют одно или несколько полей: name, about' });
   }
 
   return User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Отсутствуют или неверно переданы одно или несколько полей: name, about' });
+        return res.status(400).send({ message: 'Ошибка валидации полей: name, about' });
       }
       return res.status(500).send({ message: err.message, name: err.name });
     });
@@ -60,14 +65,14 @@ module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
 
   if (!avatar) {
-    return res.status(400).send({ message: 'Отсутствует или неверно передано поле: avatar' });
+    return res.status(400).send({ message: 'Отсутствует поле: avatar' });
   }
 
   return User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Отсутствует или неверно передано поле: avatar' });
+        res.status(400).send({ message: 'Ошибка валидации поля: avatar' });
         return;
       }
       res.status(500).send({ message: err.message });

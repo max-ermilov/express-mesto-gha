@@ -5,7 +5,7 @@ module.exports.getAllUsers = (req, res) => {
     .then((users) => {
       res.status(200).send({ data: users });
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(() => res.status(500).send({ message: 'Ошибка сервера' }));
 };
 
 module.exports.getUserById = (req, res) => {
@@ -21,60 +21,58 @@ module.exports.getUserById = (req, res) => {
       if (err.name === 'CastError') {
         return res.status(400).send({ message: 'Некорректный формат id' });
       }
-      return res.status(500).send({ message: `Ошибка сервера: ${err.mesage}` });
+      return res.status(500).send({ message: 'Ошибка сервера' });
     });
 };
 
 module.exports.createUser = (req, res) => {
   const { name, about, avatar } = req.body;
 
-  if (!name || !about || !avatar) {
-    return res.status(400).send({
-      message: 'Отсутствуют одно или несколько полей: name, about, avatar',
-    });
-  }
-
-  return User.create({ name, about, avatar })
+  User.create({ name, about, avatar })
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Неверно переданы одно или несколько полей: name, about, avatar' });
+        const errorMessage = Object.values(err.errors).map((error) => error.properties.message).join('');
+        return res.status(400).send({ message: `Ошибка валидации: ${errorMessage}` });
       }
-      return res.status(500).send({ message: err.message });
+      return res.status(500).send({ message: 'Ошибка сервера' });
     });
 };
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
 
-  if (!name || !about) {
-    return res.status(400).send({ message: 'Отсутствуют одно или несколько полей: name, about' });
-  }
-
-  return User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
-    .then((user) => res.status(200).send({ data: user }))
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Пользователь не найден' });
+      }
+      return res.status(200).send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Ошибка валидации полей: name, about' });
+        const errorMessage = Object.values(err.errors).map((error) => error.properties.message).join('');
+        return res.status(400).send({ message: `Ошибка валидации: ${errorMessage}` });
       }
-      return res.status(500).send({ message: err.message, name: err.name });
+      return res.status(500).send({ message: 'Ошибка сервера' });
     });
 };
 
 module.exports.updateUserAvatar = (req, res) => {
   const { avatar } = req.body;
 
-  if (!avatar) {
-    return res.status(400).send({ message: 'Отсутствует поле: avatar' });
-  }
-
-  return User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
-    .then((user) => res.status(200).send({ data: user }))
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Пользователь не найден' });
+      }
+      return res.status(200).send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Ошибка валидации поля: avatar' });
-        return;
+        const errorMessage = Object.values(err.errors).map((error) => error.properties.message).join('');
+        return res.status(400).send({ message: `Ошибка валидации: ${errorMessage}` });
       }
-      res.status(500).send({ message: err.message });
+      return res.status(500).send({ message: 'Ошибка сервера' });
     });
 };

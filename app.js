@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
+const { login, createUser } = require('./controllers/users');
+
 const app = express();
 const { PORT = 3000 } = process.env;
 
@@ -12,6 +14,9 @@ mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 }) // { family
   .catch((err) => {
     console.log('Не удалось подключиться к базе данных. Ошибка: ', err);
   });
+
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use((req, res, next) => {
   req.user = {

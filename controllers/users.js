@@ -105,3 +105,15 @@ module.exports.updateUserAvatar = (req, res, next) => {
       return next(err);
     });
 };
+
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFound('Пользователь не найден');
+      }
+
+      return res.send({ data: user });
+    })
+    .catch((err) => next(err));
+};

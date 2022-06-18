@@ -22,13 +22,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', { family: 4 }) // { family
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-// app.use((req, res, next) => {
-//   req.user = {
-//     _id: '6299f24405d0fd675eeba048', // hardcoded userId
-//   };
-//   next();
-// });
-
 app.use(auth);
 
 app.use('/users', require('./routes/users'));

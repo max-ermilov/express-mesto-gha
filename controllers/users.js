@@ -5,10 +5,7 @@ const User = require('../models/user');
 const {
   BadRequest, Unauthorized, NotFound, Conflict,
 } = require('../errors');
-
-function prepareValidationMessage(err) {
-  return `Ошибка валидации: ${Object.values(err.errors).map((error) => error.properties.message).join('')}`;
-}
+const { prepareValidationMessage } = require('../utils');
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;

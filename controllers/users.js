@@ -17,7 +17,7 @@ module.exports.login = (req, res, next) => {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
         sameSite: true,
-      }).end();
+      }).send({ token });
     })
     .catch(() => next(new Unauthorized('Неверные почта или пароль')));
 };
@@ -56,7 +56,14 @@ module.exports.createUser = (req, res, next) => {
     .then((hash) => User.create({
       email, password: hash, name, about, avatar,
     }))
-    .then((user) => res.status(201).send({ data: user }))
+    .then((user) => res.status(201).send(
+      {
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      },
+    ))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequest(prepareValidationMessage(err)));
